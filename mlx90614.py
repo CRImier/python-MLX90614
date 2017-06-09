@@ -5,6 +5,8 @@ echo "Y" > /sys/module/i2c_bcm2708/parameters/combined
 (I've put it in my rc.local so it's executed each bootup)
 """
 
+#Modified From https://github.com/CRImier/python-MLX90614
+
 import smbus
 from time import sleep
 
