@@ -6,6 +6,7 @@ echo "Y" > /sys/module/i2c_bcm2708/parameters/combined
 """
 
 import smbus
+from time import sleep
 
 class MLX90614():
 
@@ -27,6 +28,8 @@ class MLX90614():
     MLX90614_ID3=0x3E
     MLX90614_ID4=0x3F
 
+    comm_retries = 5
+    comm_sleep_amount = 0.1
 
     def __init__(self, address=0x5a, bus_num=1):
         self.bus_num = bus_num
@@ -34,7 +37,17 @@ class MLX90614():
         self.bus = smbus.SMBus(bus=bus_num)
 
     def read_reg(self, reg_addr):
-        return self.bus.read_word_data(self.address, reg_addr)
+        for i in range(self.comm_retries):
+            try:
+                return self.bus.read_word_data(self.address, reg_addr)
+            except IOError as e:
+                #"Rate limiting" - sleeping to prevent problems with sensor 
+                #when requesting data too quickly
+                sleep(self.comm_sleep_amount)
+        #By this time, we made a couple requests and the sensor didn't respond
+        #(judging by the fact we haven't returned from this function yet)
+        #So let's just re-raise the last IOError we got
+        raise e
 
     def data_to_temp(self, data):
         temp = (data*0.02) - 273.15
