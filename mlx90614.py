@@ -37,18 +37,19 @@ class MLX90614():
         self.bus = smbus.SMBus(bus=bus_num)
 
     def read_reg(self, reg_addr):
-        e = None
+        err = None
         for i in range(self.comm_retries):
             try:
                 return self.bus.read_word_data(self.address, reg_addr)
             except IOError as e:
+                err = e
                 #"Rate limiting" - sleeping to prevent problems with sensor
                 #when requesting data too quickly
                 sleep(self.comm_sleep_amount)
         #By this time, we made a couple requests and the sensor didn't respond
         #(judging by the fact we haven't returned from this function yet)
         #So let's just re-raise the last IOError we got
-        raise e
+        raise err
 
     def data_to_temp(self, data):
         temp = (data*0.02) - 273.15
