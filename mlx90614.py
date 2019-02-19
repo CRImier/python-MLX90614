@@ -1,5 +1,5 @@
 """
-MLX90614 driver. 
+MLX90614 driver.
 You might need to enter this command on your Raspberry Pi:
 echo "Y" > /sys/module/i2c_bcm2708/parameters/combined
 (I've put it in my rc.local so it's executed each bootup)
@@ -37,11 +37,12 @@ class MLX90614():
         self.bus = smbus.SMBus(bus=bus_num)
 
     def read_reg(self, reg_addr):
+        e = None
         for i in range(self.comm_retries):
             try:
                 return self.bus.read_word_data(self.address, reg_addr)
             except IOError as e:
-                #"Rate limiting" - sleeping to prevent problems with sensor 
+                #"Rate limiting" - sleeping to prevent problems with sensor
                 #when requesting data too quickly
                 sleep(self.comm_sleep_amount)
         #By this time, we made a couple requests and the sensor didn't respond
